@@ -305,14 +305,15 @@ static int fill_with_entropy(uint8_t *out, size_t len, int block, int seed) {
     return 1;
   }
 
-#if defined(USE_NR_getrandom) || defined(FREEBSD_GETRANDOM)
+
+#if !defined(WASM_GETRANDOM) && (defined(USE_NR_getrandom) || defined(FREEBSD_GETRANDOM))
   int getrandom_flags = 0;
   if (!block) {
     getrandom_flags |= GRND_NONBLOCK;
   }
 #endif
 
-#if defined (USE_NR_getrandom)
+#if !defined(WASM_GETRANDOM) && defined (USE_NR_getrandom)
   if (seed) {
     getrandom_flags |= *extra_getrandom_flags_for_seed_bss_get();
   }
@@ -332,6 +333,14 @@ static int fill_with_entropy(uint8_t *out, size_t len, int block, int seed) {
     if (*urandom_fd_bss_get() == kHaveGetrandom) {
 #if defined(USE_NR_getrandom)
       r = boringssl_getrandom(out, len, getrandom_flags);
+#elif defined(WASM_GETRANDOM)
+      // |getentropy| can only request 256 bytes at a time.
+      size_t todo = len <= 256 ? len : 256;
+      if (getentropy(out, todo) != 0) {
+        r = -1;
+      } else {
+        r = (ssize_t)todo;
+      }
 #elif defined(FREEBSD_GETRANDOM)
       r = getrandom(out, len, getrandom_flags);
 #elif defined(OPENSSL_MACOS)
