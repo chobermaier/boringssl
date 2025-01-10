@@ -47,6 +47,7 @@
  * ==================================================================== */
 
 #include <assert.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <openssl/aead.h>
@@ -1459,5 +1460,16 @@ int EVP_has_aes_hardware(void) {
   return 0;
 #endif
 }
+
+// // enforce AES
+// int EVP_has_aes_hardware(void) {
+//   printf("we have just called EVP_has_aes_hardware() in the chobermaier/boringssl repo. Propably from wasm\n");
+//   return 1;
+// }
+// // enforce ChaCha
+// int EVP_has_aes_hardware(void) {
+//   printf("we have just called EVP_has_aes_hardware() in the chobermaier/boringssl repo. Propably from wasm\n");
+//   return 0;
+// }
 
 OPENSSL_MSVC_PRAGMA(warning(pop))
